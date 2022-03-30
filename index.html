@@ -110,7 +110,6 @@ function loadPayloadData() // preload payload data
 </head>
 <body>
   <h1 id=msgs style='font-size:25px;text-align:center;color:white'>Kameleon PS4 900FW Jailbreak Manual</h1>
-  <button class="btnkme" onMouseOver="msgs.innerHTML='Back to Main Menu'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_mainmenu(); return false">Back to Main Menu</button>
   <div id=mymenu style="text-align:center">
     <div text-align= center>Pass = <span id=passCounter></span>&nbsp;&nbsp;:&nbsp;&nbsp;Fail = <span id=failCounter></span></div>
     <div style="width:100%;font-size:20px;color:white">
@@ -123,10 +122,7 @@ function loadPayloadData() // preload payload data
     <div style=font-size:16px>GOLDHEN / MIRA</div>
     <button class="btnkme" onMouseOver="msgs.innerHTML='Mira For 9.00 - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_mira_payload(); return false">MIRA 9.00</button>
     <br><br>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHen v2.2 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_goldhen220(); return false">GoldHen V2.2 (Latest)</button>
-    <br><br>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Go To 900FW Payloads Menu Offline Cache'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_plmenu(); return false">PS4 900FW Payloads Menu Offline</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Go To 900FW Payloads Menu Online (Needs Internet Connection)'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_plmenu_online(); return false">PS4 900FW Payloads Menu Online</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHen v2.2.2 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon PS4 900FW Jailbreak Manual'" onclick="load_goldhen222(); return false">GoldHen V2.2.2 (Latest)</button>
     <br><br>
     <p style="text-align:center;font-size:25px;color:white">Massive Thanks - Znullptr, ChendoChap, Specter, Sleirsgoevy, theflow0, SiSTRo, Al-Azif, PRB-Borg, Leeful, Nazky And Many More...</p>
     <p style="text-align:center;font-size:20px;color:white">https://twitter.com/KameleonRe</p>
@@ -149,34 +145,10 @@ function loadPayloadData() // preload payload data
 var exec_type = "";
 sessionStorage.setItem("goldhen","");
 
-function load_mainmenu(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Going to Main Menu!!!</h1>";
-var link = document.createElement('a');
-document.body.appendChild(link);
-link.href = '../index.html';
-link.click();  
-}
-
-function load_plmenu(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading 900FW Payload Menu (Offline)!!!</h1>";
-var link = document.createElement('a');
-document.body.appendChild(link);
-link.href = '../payloads/index.html';
-link.click();  
-}
-
-function load_plmenu_online(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading 900FW Payload Menu (Online)!!!</h1>";
-var link = document.createElement('a');
-document.body.appendChild(link);
-link.href = '../payloads/index-online.html';
-link.click();  
-}
-
-function load_goldhen220(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHen V2.2 Please wait!!!</h1>";
-LoadedMSG="GoldHen V2.2 Loaded. Please Close The Browser!!! Re-Open it if you wanna lauch any other payload";
-PLfile = "pl_goldhen220.bin";
+function load_goldhen222(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHen V2.2.2 Please wait!!!</h1>";
+LoadedMSG="GoldHen V2.2.2 Loaded. Please Close The Browser!!! Re-Open it if you wanna lauch any other payload";
+PLfile = "pl_goldhen222.bin";
 if (sessionStorage.goldhen != "loaded")
 {
   loadPayloadData();
