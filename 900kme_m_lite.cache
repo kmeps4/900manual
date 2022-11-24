@@ -1,6 +1,5 @@
 CACHE MANIFEST 
-# Kameleon 900 Manual Full
-# 05/22/2022-14:27:00.78 
+# Kameleon 900 Manual lite
 
 900.html
 bg.jpg
@@ -27,6 +26,7 @@ pl_enableupdates.bin
 pl_exitidu.bin
 pl_ftp.bin
 pl_goldhen224.bin
+pl_goldhen225b7.bin
 pl_historyblocker.bin
 pl_kerneldumper.bin
 pl_LinuxLoader.bin
@@ -57,6 +57,10 @@ pl_psxita_LinuxLoader4gb.bin
 pl_psxita_LinuxLoader4gb.js
 pl_psxita_LinuxLoader5gb.bin
 pl_psxita_LinuxLoader5gb.js
+pl_psxita_pro_1gb.js
+pl_psxita_pro_2gb.js
+pl_psxita_pro_3gb.js
+pl_psxita_pro_4gb.js
 pl_restore.bin
 pl_rifrenamer.bin
 pl_todex.bin
@@ -74,5 +78,5 @@ NETWORK:
 SETTINGS:
 prefer-online:
 
-# Date: 05/22/2022  10:00:00.00
+# Date: 10/29/2022  10:00:00.00
 

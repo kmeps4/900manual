@@ -100,6 +100,45 @@ function checkbinserverstatus()
 	};
 }
 
+function loadPayloadData()
+    {
+        if (PLfile)
+	{
+        if (sessionStorage.OOBdone == "yes")
+        {
+        //----------------------------------------------------------------------------------------------
+        //Buffer Array Method By Leeful
+        var req = new XMLHttpRequest();
+        req.responseType = "arraybuffer";
+        req.open('GET',PLfile);
+        req.send();
+        req.onreadystatechange = function () 
+        {
+        if (req.readyState == 4) 
+        {
+        PLD = req.response;
+        var payload_buffer = chain.syscall(477, 0, PLD.byteLength*4 , 7, 0x1002, -1, 0);
+        var pl = p.array_from_address(payload_buffer, PLD.byteLength*4);
+        var padding = new Uint8Array(4 - (req.response.byteLength % 4) % 4);
+        var tmp = new Uint8Array(req.response.byteLength + padding.byteLength);
+        tmp.set(new Uint8Array(req.response), 0);
+        tmp.set(padding, req.response.byteLength);
+        var shellcode = new Uint32Array(tmp.buffer);
+        pl.set(shellcode,0);
+        var pthread = p.malloc(0x10);
+        chain.call(libKernelBase.add32(OFFSET_lk_pthread_create), pthread, 0x0, payload_buffer, 0);
+        pldone();
+        }
+      };
+
+	}
+        else
+        {
+            setTimeout(poc, 1500);
+        }
+    }
+    }
+
 //Payloads to be loaded using Sleirsgoevy Style
 function loadPayloadDataSleirs(pl) // preload payload data
 {
@@ -175,68 +214,6 @@ else
     }
 }
 }
-
-
-//Payloads to be loaded over SandBox Escape using ChendoChap Buffer Array Style
-function loadPayloadData() // preload payload data
-{
-	if (PLfile)
-	{
-        if (sessionStorage.OOBdone == "yes")
-        {
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', PLfile, true);
-			xhr.overrideMimeType('text/plain; charset=x-user-defined');
-			xhr.onload = function(e) {
-			if (this.status == 200) 
-            {
-				payloadData = this.response;
-				injectPayload();
-				pldone();
-			}
-			else
-			{
-				alert("Failed to load " + PLfile + " - " + this.status);
-		  return;
-			}};
-			xhr.send();
-        }
-        else
-        {
-            setTimeout(poc, 1500);
-        }
-    }
-			
-		
-}
-
-  function injectPayload() 
-	{
-        if (payloadData.length > 0)
-		{
-		   var payload_buffer = chain.syscall(477, 0x0, 0x300000, 0x7, 0x1000, 0xFFFFFFFF, 0);
-		   var bufLen = payloadData.length;
-		   var payload_loader = p.malloc32(bufLen);
-		   var loader_writer = payload_loader.backing;
-		   for(var i=0;i<bufLen/4;i++){
-				var hxVal = payloadData.slice(i*4,4+(i*4)).split("").reverse().join("").split("").map(function(s){return("0000" + s.charCodeAt(0).toString(16)).slice(-2);}).join("");
-				loader_writer[i] = parseInt(hxVal, 16);
-		   }
-		   chain.syscall(74, payload_loader, 0x4000, (0x1 | 0x2 | 0x4));
-		   var pthread = p.malloc(0x10);
-		   {
-			   chain.fcall(window.syscalls[203], payload_buffer, 0x300000);
-			   chain.fcall(libKernelBase.add32(OFFSET_lk_pthread_create), pthread, 0x0, payload_loader, payload_buffer);
-		   }
-		   chain.run();
-		   
-		}
-		else
-		{
-		   alert("No Payload Data!");
-		}
-
-	}
 
 //Payloads to be loaded over GoldHEN Bin Server method
 function LoadpayloadGoldHEN(PLfile){ //Loading Payload via Payload Param.
@@ -391,9 +368,23 @@ else
     
 }
 
+function load_goldhen225b7(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHEN v2.2.5b7 Please wait!!!</h1>";
+LoadedMSG="GoldHEN v2.2.5b7 Loaded";
+PLfile ="pl_goldhen225b7.bin";
+if (sessionStorage.isbinserver == "no")
+{
+    loadPayloadData();
+}
+else
+{
+    LoadpayloadGoldHEN(PLfile);
+}
+}
+
 function load_goldhen224(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHen V2.2.4 Please wait!!!</h1>";
-LoadedMSG="GoldHen V2.2.4 Loaded";
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHEN v2.2.4 Please wait!!!</h1>";
+LoadedMSG="GoldHEN v2.2.4 Loaded";
 PLfile ="pl_goldhen224.bin";
 if (sessionStorage.isbinserver == "no")
 {
@@ -814,6 +805,39 @@ else
 }
 }
 
+/////////////LINUX PSXITA FOR PRO CONSOLES
+function load_psxita_pro_Linux1gb(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 1gb. Please wait!</h1>";
+LoadedMSG="PSXita-PRO Linux 1gb Loaded";
+sessionStorage.islinux = "yes";
+PLfile = "pl_psxita_pro_1gb.js";
+loadPayloadDataSleirs(PLfile);
+}
+
+function load_psxita_pro_Linux2gb(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 2gb. Please wait!</h1>";
+LoadedMSG="PSXita-PRO Linux 2gb Loaded";
+sessionStorage.islinux = "yes";
+PLfile = "pl_psxita_pro_2gb.js";
+loadPayloadDataSleirs(PLfile);
+}
+
+function load_psxita_pro_Linux3gb(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 3gb. Please wait!</h1>";
+LoadedMSG="PSXita-PRO Linux 3gb Loaded";
+sessionStorage.islinux = "yes";
+PLfile = "pl_psxita_pro_3gb.js";
+loadPayloadDataSleirs(PLfile);
+}
+
+function load_psxita_pro_Linux4gb(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 4gb. Please wait!</h1>";
+LoadedMSG="PSXita-PRO Linux 4gb Loaded";
+sessionStorage.islinux = "yes";
+PLfile = "pl_psxita_pro_4gb.js";
+loadPayloadDataSleirs(PLfile);
+}
+
 function load_whos_southbridge(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Whos That South-Bridge v2 . Please wait!</h1>";
 LoadedMSG="Whos That South-Bridge v2 Loaded";
@@ -914,7 +938,8 @@ else
       <button class="btnkme" onMouseOver="msgs.innerHTML='Receives .Bin payloads on port 9021 via NetCat'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_binserver9021(); return false">Binloader-9021</button>
       <br>
       <div style=font-size:16px>GOLDHEN / MIRA</div>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHen v2.2.4 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_goldhen224(); return false">GoldHen V2.2.4 (Latest)</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.5b7 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_goldhen225b7(); return false">GoldHEN v2.2.5b7 (Latest)</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.4 - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_goldhen224(); return false">GoldHEN v2.2.4</button>
       <button class="btnkme" onMouseOver="msgs.innerHTML='Mira For 9.00 - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_mira(); return false">Mira 9.00</button>
       <br>
       <div style=font-size:16px>PAYLOADS</div>
@@ -959,6 +984,11 @@ else
       <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux3gb(); return false">PSXita Linux 3GB Vram</button>
       <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux4gb(); return false">PSXita Linux 4GB Vram</button>
       <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 5GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux5gb(); return false">PSXita Linux 5GB Vram</button>
+      <br><br>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux1gb(); return false">PSXita-PRO Linux 1GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux2gb(); return false">PSXita-PRO Linux 2GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux3gb(); return false">PSXita-PRO Linux 3GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux4gb(); return false">PSXita-PRO Linux 4GB Vram</button>
     </div>
     <div id="Backl" style="display: none;">
       <br>
@@ -966,8 +996,8 @@ else
       <a ><button class="btnkme" onMouseOver="msgs.innerHTML='Go Back'" ; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" type="button">Back</button></a>
     </div>
     <br>
-    <p style="text-align:center;font-size:25px;color:white">Massive Thanks - Znullptr, ChendoChap, Specter, Sleirsgoevy, theflow0, SiSTRo, Al-Azif, PRB-Borg, Leeful, Nazky And Many More...</p>
-    <p style="text-align:center;font-size:20px;color:white">https://twitter.com/KameleonRe</p>
+    <h1 style="text-align:center;font-size:25px;color:white">Massive Thanks - Theflow0, Znullptr, ChendoChap, Specter, Sleirsgoevy, SiSTRo, Al-Azif, PRB, Leeful And Many More...</h1>
+    <p style="text-align:center;font-size:20px;color:white">https://twitter.com/Kameleonre_</p>
     </div>
     <script>
     var UA = navigator.userAgent.substring(navigator.userAgent.indexOf('5.0 (') + 19, navigator.userAgent.indexOf(') Apple')).replace("layStation 4/","");
